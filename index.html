@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nossa História — Seu Dia Especial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Quicksand:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --glass: rgba(255, 255, 255, 0.15);
+      --glass-border: rgba(255, 255, 255, 0.25);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 25%, #e1bee7 50%, #d1c4e9 75%, #c5cae9 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    h1,
+    h2 {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+
+    #welcome-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #fce4ec 0%, #e1bee7 50%, #d1c4e9 100%);
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+    }
+
+    #welcome-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .heart-btn {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(145deg, #ec407a, #ab47bc);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 40px rgba(236, 64, 122, 0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: none;
+      color: white;
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+      font-size: 1rem;
+      text-align: center;
+      line-height: 1.2;
+      padding: 10px;
+    }
+
+    .heart-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 15px 50px rgba(236, 64, 122, 0.6);
+    }
+
+    .heart-btn:active {
+      transform: scale(0.98);
+    }
+
+    #main-content {
+      opacity: 0;
+      transition: opacity 0.8s ease;
+      min-height: 100vh;
+      padding-bottom: 2rem;
+    }
+
+    #main-content.visible {
+      opacity: 1;
+    }
+
+    #hearts-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .content-wrap {
+      position: relative;
+      z-index: 1;
+    }
+
+    .player-progress {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.3);
+      outline: none;
+    }
+
+    .player-progress::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ec407a, #ab47bc);
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .typing-cursor::after {
+      content: '|';
+      animation: blink 0.8s step-end infinite;
+      color: #ec407a;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .swiper-slide {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      position: relative;
+      aspect-ratio: 3/4;
+      width: 280px;
+    }
+
+    .swiper-slide img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    @media (max-width: 640px) {
+      .heart-btn {
+        width: 100px;
+        height: 100px;
+        font-size: 0.9rem;
+      }
+
+      .swiper-slide {
+        width: 240px;
+      }
+
+      .swiper {
+        padding: 1rem 0 2.5rem !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Tela de Boas-Vindas -->
+  <div id="welcome-screen">
+    <h1 class="text-3xl md:text-4xl font-bold text-pink-800 mb-6 animate__animated animate__fadeInDown">Seu Dia
+      Aniversário</h1>
+    <p class="text-pink-700 mb-8 animate__animated animate__fadeInUp animate__delay-1s">Clique para abrir seu presente
+    </p>
+    <button type="button" id="heart-btn" class="heart-btn animate__animated animate__pulse animate__delay-2s"
+      aria-label="Nossa História">
+      Abrir Presente
+    </button>
+  </div>
+
+  <!-- Canvas para corações caindo -->
+  <canvas id="hearts-canvas"></canvas>
+
+  <!-- Conteúdo principal -->
+  <main id="main-content" class="content-wrap">
+    <!-- Player de Música -->
+    <section class="pt-6 px-4">
+      <div class="max-w-2xl mx-auto glass rounded-2xl p-4 md:p-5 animate__animated">
+        <div class="flex items-center gap-3 md:gap-4">
+          <button type="button" id="play-pause"
+            class="w-12 h-12 rounded-full bg-white/30 hover:bg-white/50 flex items-center justify-center text-pink-700 transition flex-shrink-0"
+            aria-label="Pause/Play">
+            <svg id="icon-pause" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            </svg>
+            <svg id="icon-play" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </button>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-pink-900 truncate">Nossa música</p>
+            <input type="range" id="progress" class="player-progress w-full mt-1" min="0" max="100" value="0">
+          </div>
+          <span id="time-display" class="text-sm text-pink-800 tabular-nums flex-shrink-0">0:00 / 0:00</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Título central -->
+    <section class="px-4 pt-8 pb-4">
+      <h2 class="text-2xl md:text-3xl font-bold text-center text-pink-900">Nossos Momentos</h2>
+    </section>
+
+    <!-- Carrossel Swiper -->
+    <section class="px-2 sm:px-4 py-4">
+      <div class="swiper swiper-coverflow max-w-4xl mx-auto">
+        <div class="swiper-wrapper">
+          <!-- Use photos/foto1.jpeg ou photos/foto%201.jpeg se o arquivo for "foto 1.jpeg" -->
+          <div class="swiper-slide"><img src="photos/foto%201.jpeg" alt="Momento 1" loading="lazy"></div>
+          <div class="swiper-slide"><img src="photos/foto%202.jpeg" alt="Momento 2" loading="lazy"></div>
+          <div class="swiper-slide"><img src="photos/foto%203.jpeg" alt="Momento 3" loading="lazy"></div>
+          <div class="swiper-slide"><img src="photos/foto%204.jpeg" alt="Momento 4" loading="lazy"></div>
+          <div class="swiper-slide"><img src="photos/foto%205.jpeg" alt="Momento 5" loading="lazy"></div>
+        </div>
+        <div class="swiper-pagination"></div>
+      </div>
+    </section>
+
+    <!-- Mensagem com efeito digitação -->
+    <section class="px-4 py-6">
+      <div class="glass-strong rounded-2xl p-5 md:p-6 max-w-2xl mx-auto animate__animated">
+        <h3 class="text-lg font-semibold text-pink-900 mb-3">Para você</h3>
+        <p id="typing-text" class="text-pink-900/90 leading-relaxed min-h-[4rem]"></p>
+      </div>
+    </section>
+
+    <!-- Contador de Tempo -->
+    <section class="px-4 py-6">
+      <div class="glass rounded-2xl p-5 md:p-6 max-w-2xl mx-auto text-center animate__animated">
+        <h3 class="text-lg font-semibold text-pink-900 mb-3">Tempo juntos</h3>
+        <p id="countdown" class="text-pink-800 text-base md:text-lg font-medium">Carregando...</p>
+      </div>
+    </section>
+
+    <footer class="text-center text-pink-700/80 text-sm">
+      De: Marco Antonio Bortolotti Junior
+    </footer>
+    <footer class="text-center text-pink-700/80 text-sm mt-2">
+      Para: Lana Letícia Picolo Martins
+    </footer>
+  </main>
+
+  <audio id="audio" preload="metadata" loop>
+    <source src="music/Konai - Te Vejo Nos Meus Sonhos (Álbum Petricor) [V7yp_tNy8oE].mp3" type="audio/mpeg">
+  </audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script>
+    const DATA_NAMORO = new Date('2024-11-10T00:00:00');
+
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const heartBtn = document.getElementById('heart-btn');
+    const mainContent = document.getElementById('main-content');
+    const audio = document.getElementById('audio');
+    const playPause = document.getElementById('play-pause');
+    const iconPlay = document.getElementById('icon-play');
+    const iconPause = document.getElementById('icon-pause');
+    const progress = document.getElementById('progress');
+    const timeDisplay = document.getElementById('time-display');
+
+    heartBtn.addEventListener('click', function () {
+      welcomeScreen.classList.add('hidden');
+      mainContent.classList.add('visible');
+      try {
+        audio.play().catch(function () { });
+        iconPlay.classList.add('hidden');
+        iconPause.classList.remove('hidden');
+      } catch (e) { }
+      document.querySelectorAll('#main-content .animate__animated').forEach(function (el, i) {
+        el.classList.add('animate__fadeInUp');
+        el.style.animationDelay = (i * 0.1) + 's';
+      });
+    });
+
+    function formatTime(seconds) {
+      if (!isFinite(seconds) || isNaN(seconds)) return '0:00';
+      var m = Math.floor(seconds / 60);
+      var s = Math.floor(seconds % 60);
+      return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    audio.addEventListener('loadedmetadata', function () {
+      progress.max = 100;
+      timeDisplay.textContent = '0:00 / ' + formatTime(audio.duration);
+    });
+    audio.addEventListener('timeupdate', function () {
+      var p = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+      progress.value = p;
+      timeDisplay.textContent = formatTime(audio.currentTime) + ' / ' + formatTime(audio.duration);
+    });
+    audio.addEventListener('ended', function () {
+      iconPlay.classList.remove('hidden');
+      iconPause.classList.add('hidden');
+      progress.value = 0;
+    });
+    audio.addEventListener('error', function () {
+      timeDisplay.textContent = 'Adicione music/morena-acoustic-version.mp3';
+    });
+
+    playPause.addEventListener('click', function () {
+      if (audio.paused) {
+        audio.play();
+        iconPlay.classList.add('hidden');
+        iconPause.classList.remove('hidden');
+      } else {
+        audio.pause();
+        iconPlay.classList.remove('hidden');
+        iconPause.classList.add('hidden');
+      }
+    });
+
+    progress.addEventListener('input', function () {
+      var t = (progress.value / 100) * (audio.duration || 0);
+      audio.currentTime = t;
+    });
+
+    new Swiper('.swiper-coverflow', {
+      effect: 'coverflow',
+      grabCursor: true,
+      centeredSlides: true,
+      slidesPerView: 'auto',
+      loop: true,
+      autoplay: {
+        delay: 2000,
+        disableOnInteraction: false
+      },
+      coverflowEffect: {
+        rotate: 20,
+        stretch: 0,
+        depth: 80,
+        modifier: 1,
+        slideShadows: true
+      },
+      pagination: { el: '.swiper-pagination', clickable: true },
+      breakpoints: {
+        320: { slidesPerView: 1.1, spaceBetween: 12 },
+        640: { slidesPerView: 1.5, spaceBetween: 16 },
+        1024: { slidesPerView: 2, spaceBetween: 24 }
+      }
+    });
+    
+    function updateCountdown() {
+      var now = new Date();
+      var diff = now - DATA_NAMORO;
+      if (diff < 0) {
+        document.getElementById('countdown').textContent = 'Em breve...';
+        return;
+      }
+      var sec = Math.floor(diff / 1000) % 60;
+      var min = Math.floor(diff / 60000) % 60;
+      var hr = Math.floor(diff / 3600000) % 24;
+      var day = Math.floor(diff / 86400000);
+      document.getElementById('countdown').textContent =
+        day + ' dias, ' + hr + ' horas, ' + min + ' minutos e ' + sec + ' segundos';
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    var romanticText = 'Queria te dar algo que o tempo não pudesse apagar. Por isso, criei esse lugarzinho só nosso. Que ele te acompanhe em cada sorriso e te abrace em cada saudade, sendo a prova viva de que eu vou te amar para sempre. Com todo o meu amor, minha eterna Senhorita. ✨';
+    var typingEl = document.getElementById('typing-text');
+    var i = 0;
+    function typeWriter() {
+      if (i < romanticText.length) {
+        typingEl.textContent = romanticText.slice(0, i + 1);
+        typingEl.classList.add('typing-cursor');
+        i++;
+        setTimeout(typeWriter, 60 + Math.random() * 40);
+      } else {
+        typingEl.classList.remove('typing-cursor');
+      }
+    }
+    setTimeout(typeWriter, 500);
+
+    var canvas = document.getElementById('hearts-canvas');
+    var ctx = canvas.getContext('2d');
+    var hearts = [];
+    var heartSymbols = ['❤', '💕', '💗'];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    function createHeart() {
+      return {
+        x: Math.random() * canvas.width,
+        y: -20,
+        size: 12 + Math.random() * 14,
+        speed: 0.5 + Math.random() * 1.2,
+        symbol: heartSymbols[Math.floor(Math.random() * heartSymbols.length)],
+        opacity: 0.3 + Math.random() * 0.5
+      };
+    }
+    function drawHearts() {
+      if (!ctx || !canvas.width) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (var j = 0; j < hearts.length; j++) {
+        var h = hearts[j];
+        h.y += h.speed;
+        if (h.y > canvas.height + 30) {
+          hearts[j] = createHeart();
+          h = hearts[j];
+        }
+        ctx.font = h.size + 'px Arial';
+        ctx.globalAlpha = h.opacity;
+        ctx.fillText(h.symbol, h.x, h.y);
+      }
+      ctx.globalAlpha = 1;
+    }
+    function animateHearts() {
+      drawHearts();
+      requestAnimationFrame(animateHearts);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    for (var k = 0; k < 25; k++) hearts.push(createHeart());
+    animateHearts();
+  </script>
+</body>
+
+</html>
